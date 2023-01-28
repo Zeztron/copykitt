@@ -14,9 +14,8 @@ def main():
 
     user_input = args.input
     if validate_length(user_input):
-        result = generate_branding_snippet(user_input)
-        keywords = generate_keywords(user_input)
-
+        generate_branding_snippet(user_input)
+        generate_keywords(user_input)
     else:
         raise ValueError(
             f"Input length is too long. Must be under {MAX_INPUT_LENGTH} characters. Submitted input is {user_input}")
@@ -35,7 +34,11 @@ def generate_branding_snippet(input: str) -> str:
         model="text-davinci-003", prompt=prompt, temperature=0, max_tokens=32)
 
     branding_text: str = response["choices"][0]["text"]
-    branding_text = branding_text.strip()
+
+    branding_text = branding_text.replace("\n", "")
+    if "\"" in branding_text:
+        branding_text = branding_text.split("\"")[1]
+
     last_char = branding_text[-1]
     if last_char not in {".", "!", "?"}:
         branding_text += "..."
