@@ -4,6 +4,8 @@ import openai
 import argparse
 import re
 
+MAX_INPUT_LENGTH = 32
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -11,15 +13,23 @@ def main():
     args = parser.parse_args()
 
     user_input = args.input
-    result = generate_branding_snippet(user_input)
-    print(result)
-    keywords = generate_keywords(user_input)
-    print(keywords)
+    if validate_length(user_input):
+        result = generate_branding_snippet(user_input)
+        keywords = generate_keywords(user_input)
+
+    else:
+        raise ValueError(
+            f"Input length is too long. Must be under {MAX_INPUT_LENGTH} characters. Submitted input is {user_input}")
+
+
+def validate_length(prompt: str) -> bool:
+    return len(prompt) <= MAX_INPUT_LENGTH
 
 
 def generate_branding_snippet(input: str) -> str:
     openai.api_key = os.getenv("OPENAI_API_KEY")
     prompt = f"Generate upbeat branding snippet for {input}"
+    print(prompt)
 
     response = openai.Completion.create(
         model="text-davinci-003", prompt=prompt, temperature=0, max_tokens=32)
@@ -30,6 +40,7 @@ def generate_branding_snippet(input: str) -> str:
     if last_char not in {".", "!", "?"}:
         branding_text += "..."
 
+    print(f"Branding Snippet: {branding_text}")
     return branding_text
 
 
@@ -37,6 +48,7 @@ def generate_keywords(input: str) -> List[str]:
 
     openai.api_key = os.getenv("OPENAI_API_KEY")
     prompt = f"Generate related branding keywords for {input} without listing them"
+    print(prompt)
 
     response = openai.Completion.create(
         model="text-davinci-003", prompt=prompt, temperature=0, max_tokens=32)
@@ -47,6 +59,7 @@ def generate_keywords(input: str) -> List[str]:
     keywords_array = [k.strip() for k in keywords_array]
     keywords_array = [k for k in keywords_array if len(k) > 0]
 
+    print(f"Keywords: {keywords_array}")
     return keywords_array
 
 
